@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crave · Social Commerce AI — Prototype</title>
+<style>
+  :root{
+    --stage-1:#211E52; --stage-0:#0E0D22; --glow:#4F46E5;
+    --s-ink:#ECEBFF; --s-mut:#9D9BCF; --s-accent:#A5B4FC; --s-line:rgba(165,180,252,.18);
+    --crave:#FF4D2E; --crave-press:#E03E20; --crave-soft:#FFEDE8; --crave-ink:#9A2A14;
+    --ink:#0B0B0F; --ink2:#48484E; --mut:#8A8A90; --line:#E6E6EA;
+    --bg:#FFFFFF; --bg2:#F1F1F5; --field:#EDEDF1;
+    --ai:#E9E9EF; --ai-ink:#101015; --blue:#0A84FF; --green:#2FB344;
+    --sys:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;height:100%;overflow:hidden;}
+  body{
+    font-family:var(--sys); color:var(--s-ink);
+    background:
+      radial-gradient(900px 600px at 50% 8%, rgba(79,70,229,.28), transparent 60%),
+      radial-gradient(700px 500px at 80% 100%, rgba(255,77,46,.10), transparent 55%),
+      linear-gradient(160deg, var(--stage-1), var(--stage-0));
+    height:100vh; overflow:hidden; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:12px;
+  }
+  .eyebrow{font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--s-accent);font-weight:700;margin:0 0 8px;}
+  .stitle{font-size:23px;font-weight:800;letter-spacing:-.01em;margin:0;color:#fff;text-align:center;}
+  .stitle b{color:var(--crave);}
+  .ssub{margin:7px 0 22px;font-size:13.5px;color:var(--s-mut);text-align:center;max-width:340px;line-height:1.5;}
+
+  .scaler{transform-origin:top center;margin:0 auto;}
+  .device{
+    position:relative;width:460px;height:996px;background:#0a0a0c;border-radius:56px;padding:13px;
+    box-shadow:0 0 0 2px #2a2a30,0 0 0 12px #141417,0 40px 80px -20px rgba(0,0,0,.65),0 10px 30px rgba(0,0,0,.5);
+  }
+  .screen{position:relative;width:100%;height:100%;background:var(--bg);border-radius:44px;overflow:hidden;display:flex;flex-direction:column;}
+  .island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:122px;height:34px;background:#000;border-radius:20px;z-index:60;}
+  .statusbar{height:52px;flex:0 0 52px;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 34px;font-size:15px;font-weight:600;color:var(--ink);z-index:55;}
+  .sb-right{display:flex;align-items:center;gap:7px;}
+  .sb-right svg{display:block;}
+  .home-ind{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:140px;height:5px;border-radius:3px;background:rgba(0,0,0,.85);z-index:60;}
+
+  .views{flex:1 1 auto;position:relative;min-height:0;}
+  .view{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;visibility:hidden;transform:translateX(14px);transition:opacity .34s ease,transform .34s ease,visibility 0s linear .34s;}
+  .view.active{opacity:1;visibility:visible;transform:none;transition:opacity .34s ease,transform .34s ease;}
+  .scroll{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+  .scroll::-webkit-scrollbar{display:none;}
+
+  .appbar{display:flex;align-items:center;gap:12px;padding:6px 16px 12px;border-bottom:1px solid var(--line);}
+  .appbar .home-logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#111,#333);display:grid;place-items:center;}
+  .appbar .home-logo svg{width:18px;height:18px;}
+  .appbar .ab-title{font-size:17px;font-weight:800;color:var(--ink);letter-spacing:-.02em;}
+  .appbar .ab-spacer{flex:1;}
+  .ab-ic{width:22px;height:22px;color:var(--ink);}
+
+  .post{padding:14px 16px;border-bottom:1px solid var(--line);}
+  .post.focus{box-shadow:inset 3px 0 0 var(--crave);}
+  .prow{display:flex;gap:11px;}
+  .av{width:42px;height:42px;border-radius:50%;flex:0 0 42px;display:grid;place-items:center;font-weight:700;color:#fff;font-size:16px;}
+  .av.creator{background:linear-gradient(135deg,#FF7A45,#FF4D2E);}
+  .av.user{background:linear-gradient(135deg,#6366F1,#4338CA);}
+  .av.crave{background:#fff;border:1px solid var(--line);padding:0;overflow:hidden;}
+  .av.sm{width:30px;height:30px;flex-basis:30px;font-size:12px;}
+  .av.sm .mark{width:100%;height:100%;}
+  .meta{min-width:0;}
+  .name{font-size:15px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:4px;line-height:1.15;}
+  .verif{width:15px;height:15px;color:var(--blue);}
+  .handle{font-size:13.5px;color:var(--mut);}
+  .ptext{margin:9px 0 0;font-size:15px;line-height:1.42;color:var(--ink);}
+  .ptext .mention{color:var(--crave);font-weight:600;}
+  .pimg{margin-top:11px;border-radius:18px;overflow:hidden;border:1px solid var(--line);position:relative;background:#1c1410;}
+  .pimg svg{display:block;width:100%;height:auto;}
+  .reel-badge{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;font-weight:600;border-radius:20px;padding:4px 9px;display:flex;align-items:center;gap:5px;backdrop-filter:blur(4px);}
+  .pactions{display:flex;gap:24px;margin-top:12px;color:var(--mut);font-size:13px;align-items:center;}
+  .pact{display:flex;align-items:center;gap:6px;}
+  .pact svg{width:18px;height:18px;}
+  .pact.liked{color:var(--crave);}
+
+  /* comments */
+  .comments{margin-top:13px;border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:12px;}
+  .cmt{display:flex;gap:9px;}
+  .cmt-body{min-width:0;}
+  .cmt-line{font-size:13.5px;line-height:1.4;color:var(--ink);}
+  .cmt-name{font-weight:700;margin-right:5px;display:inline-flex;align-items:center;gap:3px;}
+  .cmt-name .verif{width:13px;height:13px;}
+  .cmt-text .mention{color:var(--crave);font-weight:600;}
+  .cmt-meta{font-size:11.5px;color:var(--mut);margin-top:4px;display:flex;gap:14px;}
+  .cmt.you .cmt-body{background:var(--bg2);border-radius:13px;padding:8px 11px;}
+  .cmt-newin{animation:cmtIn .35s ease both;}
+  @keyframes cmtIn{from{opacity:0;transform:translateY(7px);}to{opacity:1;transform:none;}}
+  .composer{display:flex;align-items:center;gap:9px;margin-top:13px;border-top:1px solid var(--line);padding-top:12px;}
+  .composer .cinput{flex:1;font-size:13.5px;color:var(--ink2);background:var(--field);border-radius:18px;padding:10px 13px;line-height:1.35;}
+  .composer .cinput .mention{color:var(--crave);font-weight:600;}
+  .btn{border:0;cursor:pointer;font-family:var(--sys);font-weight:700;border-radius:999px;transition:transform .08s ease,background .15s ease;}
+  .btn:active{transform:scale(.97);}
+  .btn-post{background:var(--crave);color:#fff;font-size:13.5px;padding:9px 16px;flex:0 0 auto;}
+  .btn-post:disabled{opacity:.45;}
+
+  /* comment-thread (view 2) */
+  .cmt-divider{font-size:12px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;padding:13px 16px 0;}
+  .cmt-thread{padding:12px 16px 16px;display:flex;flex-direction:column;gap:14px;}
+  .cmt-reply{margin-left:39px;}
+  .ai-chip{display:inline-flex;align-items:center;gap:5px;background:var(--crave-soft);color:var(--crave-ink);font-size:11px;font-weight:700;border-radius:20px;padding:3px 9px;margin-top:8px;}
+  .dm-pill{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:11px;background:var(--crave);color:#fff;font-size:15px;font-weight:700;border-radius:14px;padding:13px;}
+  .dm-pill svg{width:18px;height:18px;}
+  .tap-hint{display:block;font-size:12px;color:var(--mut);margin-top:9px;line-height:1.45;}
+
+  /* toast */
+  .toast{position:absolute;left:14px;right:14px;top:10px;z-index:70;background:rgba(18,16,26,.96);color:#fff;border-radius:16px;padding:12px 14px;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:0 14px 32px -8px rgba(0,0,0,.55);cursor:pointer;transform:translateY(-150%);opacity:0;transition:transform .42s cubic-bezier(.2,1,.3,1),opacity .3s;backdrop-filter:blur(6px);}
+  .toast.show{transform:none;opacity:1;}
+  .toast .t-av{width:28px;height:28px;border-radius:50%;overflow:hidden;flex:0 0 28px;}
+  .toast .t-go{margin-left:auto;color:var(--s-accent);font-weight:800;}
+
+  /* DM */
+  .dmbar{display:flex;align-items:center;gap:10px;padding:4px 14px 11px;border-bottom:1px solid var(--line);}
+  .chev{width:24px;height:24px;color:var(--crave);flex:0 0 24px;cursor:pointer;}
+  .dmav{width:36px;height:36px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;overflow:hidden;}
+  .dmav .mark{width:36px;height:36px;}
+  .dm-name{font-size:15px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:4px;line-height:1.1;}
+  .dm-sub{font-size:12px;color:var(--mut);}
+  .dm-scroll{padding:16px 14px 18px;display:flex;flex-direction:column;gap:9px;background:var(--bg);}
+  .bubble{max-width:80%;font-size:14.5px;line-height:1.4;padding:10px 13px;border-radius:19px;}
+  .bubble.ai{background:var(--ai);color:var(--ai-ink);align-self:flex-start;border-bottom-left-radius:6px;}
+  .bubble.me{background:var(--crave);color:#fff;align-self:flex-end;border-bottom-right-radius:6px;}
+  .ts{font-size:11px;color:var(--mut);align-self:center;margin:2px 0 4px;}
+
+  .opt{border:1px solid var(--line);border-radius:16px;padding:11px;display:flex;gap:11px;align-items:center;cursor:pointer;background:#fff;transition:transform .08s ease,border-color .15s ease,box-shadow .15s ease;box-shadow:0 1px 2px rgba(0,0,0,.03);}
+  .opt:active{transform:scale(.985);}
+  .opt:hover{border-color:#d9d9df;box-shadow:0 6px 16px -8px rgba(0,0,0,.18);}
+  .opt-thumb{width:52px;height:52px;border-radius:12px;flex:0 0 52px;overflow:hidden;background:#1c1410;}
+  .opt-thumb svg{width:100%;height:100%;display:block;}
+  .opt-body{flex:1;min-width:0;}
+  .opt-name{font-size:14.5px;font-weight:700;color:var(--ink);}
+  .opt-rest{font-size:12.5px;color:var(--mut);margin-top:1px;}
+  .opt-bottom{display:flex;align-items:center;gap:8px;margin-top:6px;}
+  .tag{font-size:10.5px;font-weight:700;border-radius:20px;padding:2px 8px;}
+  .tag.usual{background:var(--crave-soft);color:var(--crave-ink);}
+  .tag.reorder{background:#E8F2FF;color:#1554B0;}
+  .tag.new{background:#FFF3E0;color:#9A5B00;}
+  .opt-price{font-size:14px;font-weight:800;color:var(--ink);}
+
+  .summary{border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 8px 22px -14px rgba(0,0,0,.25);}
+  .sum-head{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;}
+  .sum-head .opt-thumb{width:40px;height:40px;flex-basis:40px;border-radius:10px;}
+  .sum-rest{font-size:14px;font-weight:800;color:var(--ink);}
+  .sum-eta{font-size:12px;color:var(--green);font-weight:600;}
+  .sline{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);font-size:13.5px;color:var(--ink2);}
+  .sline svg{width:17px;height:17px;color:var(--mut);flex:0 0 17px;}
+  .sline b{color:var(--ink);font-weight:600;}
+  .sline .chk{margin-left:auto;font-size:11px;font-weight:700;color:var(--green);background:#E9F8EC;padding:2px 8px;border-radius:20px;}
+  .sline .qty{margin-left:auto;font-weight:700;color:var(--ink);}
+  .total{display:flex;justify-content:space-between;padding:12px 14px;font-size:15px;font-weight:800;color:var(--ink);}
+  .btn-confirm{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:13px;background:var(--crave);color:#fff;font-size:16px;font-weight:800;border-radius:15px;padding:15px;}
+  .btn-confirm svg{width:18px;height:18px;}
+  .micro{display:block;text-align:center;font-size:12px;color:var(--mut);margin-top:10px;}
+
+  .placed{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0 2px;}
+  .check-pop{width:62px;height:62px;border-radius:50%;background:var(--green);display:grid;place-items:center;animation:pop .5s cubic-bezier(.2,1.3,.4,1) both;}
+  .check-pop svg{width:34px;height:34px;color:#fff;}
+  @keyframes pop{0%{transform:scale(0);}100%{transform:scale(1);}}
+  .placed h3{margin:6px 0 0;font-size:18px;font-weight:800;color:var(--ink);}
+  .placed .ord{font-size:13px;color:var(--mut);}
+  .track{border:1px solid var(--line);border-radius:18px;padding:16px 16px 6px;background:#fff;margin-top:4px;}
+  .track-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+  .track-head .tt{font-size:13.5px;font-weight:800;color:var(--ink);}
+  .track-head .te{font-size:12.5px;color:var(--crave);font-weight:700;}
+  .tnode{display:flex;gap:13px;position:relative;padding-bottom:18px;}
+  .tnode:last-child{padding-bottom:6px;}
+  .tdot{width:22px;height:22px;border-radius:50%;flex:0 0 22px;border:2px solid var(--line);background:#fff;display:grid;place-items:center;z-index:2;transition:.3s;}
+  .tdot svg{width:12px;height:12px;color:#fff;opacity:0;transition:.3s;}
+  .tnode:not(:last-child)::before{content:"";position:absolute;left:10px;top:20px;bottom:0;width:2px;background:var(--line);transition:.3s;}
+  .tnode.done .tdot{background:var(--green);border-color:var(--green);}
+  .tnode.done .tdot svg{opacity:1;}
+  .tnode.done::before{background:var(--green);}
+  .tnode.active .tdot{border-color:var(--crave);box-shadow:0 0 0 4px rgba(255,77,46,.15);}
+  .tlabel{font-size:13.5px;font-weight:600;color:var(--ink);padding-top:1px;}
+  .tnode.pending .tlabel{color:var(--mut);font-weight:500;}
+  .tsub{font-size:11.5px;color:var(--mut);margin-top:1px;}
+  .restart{display:block;width:100%;margin-top:6px;text-align:center;background:none;border:0;color:var(--crave);font-weight:700;font-size:14px;padding:10px;cursor:pointer;font-family:var(--sys);}
+
+  .controls{display:flex;align-items:center;gap:18px;margin-top:22px;}
+  .nav{width:42px;height:42px;border-radius:50%;border:1px solid var(--s-line);background:rgba(255,255,255,.04);color:var(--s-ink);display:grid;place-items:center;cursor:pointer;transition:.15s;}
+  .nav:hover:not(:disabled){background:rgba(255,255,255,.1);}
+  .nav:disabled{opacity:.3;cursor:default;}
+  .nav svg{width:18px;height:18px;}
+  .dots{display:flex;gap:9px;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--s-line);cursor:pointer;transition:.25s;}
+  .dot.on{background:var(--crave);width:24px;border-radius:5px;}
+  .caption{margin-top:16px;text-align:center;max-width:340px;min-height:40px;}
+  .caption .cstep{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--s-accent);font-weight:700;}
+  .caption .ctext{font-size:14px;color:var(--s-mut);line-height:1.5;margin-top:4px;}
+
+  @media (max-width:430px){body{padding:18px 8px 28px;}}
+  @media (prefers-reduced-motion:reduce){*{animation-duration:.001s!important;transition-duration:.001s!important;}}
+</style>
+</head>
+<body>
+  <p class="eyebrow">Prototype</p>
+  <h1 class="stitle"><b>Crave</b> · Conversation&#8209;to&#8209;Commerce</h1>
+  <p class="ssub">From a casual comment to a confirmed order — without leaving the app you're already in. Tap through, or use the arrows.</p>
+
+  <div class="scaler" id="scaler">
+  <div class="device">
+    <div class="island"></div>
+    <div class="home-ind"></div>
+    <div class="screen">
+      <div class="statusbar">
+        <span id="clock">9:41</span>
+        <span class="sb-right">
+          <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+          <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor"><path d="M8.5 2.5c2.5 0 4.8 1 6.4 2.6l1.5-1.6C14.4 1.4 11.6 0 8.5 0S2.6 1.4.6 3.5l1.5 1.6C3.7 3.5 6 2.5 8.5 2.5z" opacity=".9"/><path d="M8.5 6c1.4 0 2.7.6 3.6 1.5l1.5-1.6C12.3 4.6 10.5 4 8.5 4s-3.8.6-5.1 1.9l1.5 1.6C5.8 6.6 7.1 6 8.5 6z" opacity=".9"/><path d="M8.5 9.5L11 7.1C10.3 6.4 9.4 6 8.5 6s-1.8.4-2.5 1.1L8.5 9.5z"/></svg>
+          <svg width="26" height="13" viewBox="0 0 26 13" fill="none"><rect x=".5" y=".5" width="21" height="12" rx="3.5" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2" fill="currentColor"/><rect x="23" y="4" width="2" height="5" rx="1" fill="currentColor" opacity=".5"/></svg>
+        </span>
+      </div>
+
+      <div class="views" id="views">
+
+        <!-- ===== VIEW 1: SOCIAL FEED + COMMENT ===== -->
+        <section class="view active" data-view="1">
+          <div class="appbar">
+            <div class="home-logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></div>
+            <span class="ab-title">Home</span>
+            <span class="ab-spacer"></span>
+            <svg class="ab-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.3-4.3"/></svg>
+          </div>
+
+          <div class="scroll" id="feedScroll">
+            <!-- post: food banter (text) -->
+            <article class="post">
+              <div class="prow">
+                <div class="av" style="background:linear-gradient(135deg,#14B8A6,#0D9488)">C</div>
+                <div class="meta"><div class="name">City Eats</div><div class="handle">@city_eats · 1h</div></div>
+              </div>
+              <p class="ptext">unpopular opinion: pineapple absolutely belongs on pizza 🍍 i said what i said</p>
+              <div class="pactions">
+                <span class="pact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.6-9.3-9.1C1.2 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 4.8 3.5 3.3 6.4C19 16.4 12 21 12 21z"/></svg>892</span>
+                <span class="pact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 01-12 7.7L3 21l1.8-6A8.5 8.5 0 1121 11.5z"/></svg>240</span>
+              </div>
+            </article>
+
+            <!-- post: PIZZA (focus) with comments + composer -->
+            <article class="post focus">
+              <div class="prow">
+                <div class="av creator">T</div>
+                <div class="meta">
+                  <div class="name">Tasty Trails <svg class="verif" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.7 2.9-.2 1 2.7 2.4 1.6-.6 2.9.6 2.9-2.4 1.6-1 2.7-2.9-.2L12 22l-2.4-1.7-2.9.2-1-2.7L3.3 16l.6-2.9-.6-2.9 2.4-1.6 1-2.7 2.9.2z"/><path d="M10.6 14.6l-2-2-1.1 1.1 3.1 3.1 5.3-5.3-1.1-1.1z" fill="#fff"/></svg></div>
+                  <div class="handle">@tastytrails · 12m</div>
+                </div>
+              </div>
+              <p class="ptext">wood-fired pepperoni, blistered crust, done right 🔥 who's hungry tonight?</p>
+              <div class="pimg">
+                <svg viewBox="0 0 340 220" id="pizzaHero"></svg>
+                <span class="reel-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>Reel · 0:14</span>
+              </div>
+              <div class="pactions">
+                <span class="pact liked"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.6-9.3-9.1C1.2 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 4.8 3.5 3.3 6.4C19 16.4 12 21 12 21z"/></svg>2.4k</span>
+                <span class="pact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 01-12 7.7L3 21l1.8-6A8.5 8.5 0 1121 11.5z"/></svg>183</span>
+                <span class="pact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7"/><path d="M16 6l-4-4-4 4M12 2v14"/></svg></span>
+              </div>
+
+              <div class="comments">
+                <div class="cmt">
+                  <div class="av sm" style="background:linear-gradient(135deg,#F472B6,#DB2777)">N</div>
+                  <div class="cmt-body"><div class="cmt-line"><span class="cmt-name">foodie_neha</span><span class="cmt-text">this looks insane 😍</span></div><div class="cmt-meta"><span>2m</span><span>♥ 14</span><span>Reply</span></div></div>
+                </div>
+                <div class="cmt">
+                  <div class="av sm" style="background:linear-gradient(135deg,#60A5FA,#2563EB)">R</div>
+                  <div class="cmt-body"><div class="cmt-line"><span class="cmt-name">rahul.eats</span><span class="cmt-text">okay which place is this?? need it tonight</span></div><div class="cmt-meta"><span>1m</span><span>♥ 5</span><span>Reply</span></div></div>
+                </div>
+                <div id="yourCmtSlot"></div>
+              </div>
+
+              <div class="composer" id="composer">
+                <div class="av user sm">M</div>
+                <div class="cinput"><span class="mention">@craveapp</span> this looks unreal 🍕 need this for dinner tonight</div>
+                <button class="btn btn-post" id="postBtn">Post</button>
+              </div>
+            </article>
+
+            <!-- post: text -->
+            <article class="post">
+              <div class="prow">
+                <div class="av" style="background:linear-gradient(135deg,#34D399,#059669)">R</div>
+                <div class="meta"><div class="name">Raj Runs</div><div class="handle">@runner_raj · 2h</div></div>
+              </div>
+              <p class="ptext">10k done before sunrise 🏃 officially earned carbs for dinner tonight</p>
+              <div class="pactions">
+                <span class="pact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.6-9.3-9.1C1.2 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 4.8 3.5 3.3 6.4C19 16.4 12 21 12 21z"/></svg>311</span>
+                <span class="pact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 01-12 7.7L3 21l1.8-6A8.5 8.5 0 1121 11.5z"/></svg>28</span>
+              </div>
+            </article>
+
+            <!-- post: text -->
+            <article class="post">
+              <div class="prow">
+                <div class="av" style="background:linear-gradient(135deg,#A78BFA,#7C3AED)">A</div>
+                <div class="meta"><div class="name">Aisha Cooks</div><div class="handle">@aisha.cooks · 3h</div></div>
+              </div>
+              <p class="ptext">made dalgona at home and immediately regretted the arm workout ☕😩</p>
+              <div class="pactions">
+                <span class="pact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-4.6-9.3-9.1C1.2 9 2.5 5.5 6 5.5c2 0 3.2 1.2 4 2.3.8-1.1 2-2.3 4-2.3 3.5 0 4.8 3.5 3.3 6.4C19 16.4 12 21 12 21z"/></svg>156</span>
+                <span class="pact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 01-12 7.7L3 21l1.8-6A8.5 8.5 0 1121 11.5z"/></svg>19</span>
+              </div>
+            </article>
+          </div>
+
+          <!-- notification banner -->
+          <div class="toast" id="craveToast">
+            <div class="t-av"><svg viewBox="0 0 36 36" id="toastMark"></svg></div>
+            <span><b>craveapp</b> replied to your comment</span>
+            <span class="t-go">View</span>
+          </div>
+        </section>
+
+        <!-- ===== VIEW 2: COMMENT THREAD + AI REPLY ===== -->
+        <section class="view" data-view="2">
+          <div class="appbar">
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M15 18l-6-6 6-6"/></svg>
+            <span class="ab-title">Post</span>
+          </div>
+          <div class="scroll">
+            <article class="post">
+              <div class="prow">
+                <div class="av creator">T</div>
+                <div class="meta">
+                  <div class="name">Tasty Trails <svg class="verif" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.7 2.9-.2 1 2.7 2.4 1.6-.6 2.9.6 2.9-2.4 1.6-1 2.7-2.9-.2L12 22l-2.4-1.7-2.9.2-1-2.7L3.3 16l.6-2.9-.6-2.9 2.4-1.6 1-2.7 2.9.2z"/><path d="M10.6 14.6l-2-2-1.1 1.1 3.1 3.1 5.3-5.3-1.1-1.1z" fill="#fff"/></svg></div>
+                  <div class="handle">@tastytrails · 12m</div>
+                </div>
+              </div>
+              <p class="ptext">wood-fired pepperoni, blistered crust, done right 🔥 who's hungry tonight?</p>
+            </article>
+
+            <div class="cmt-divider">Comments</div>
+            <div class="cmt-thread">
+              <div class="cmt you">
+                <div class="av user sm">M</div>
+                <div class="cmt-body"><div class="cmt-line"><span class="cmt-name">Manmath</span><span class="cmt-text"><span class="mention">@craveapp</span> this looks unreal 🍕 need this for dinner tonight</span></div><div class="cmt-meta"><span>now</span><span>♥ 1</span><span>Reply</span></div></div>
+              </div>
+
+              <div class="cmt-reply">
+                <div class="cmt">
+                  <div class="av crave sm"><svg class="mark" viewBox="0 0 36 36" id="craveMark1"></svg></div>
+                  <div class="cmt-body">
+                    <div class="cmt-line"><span class="cmt-name">craveapp <svg class="verif" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.7 2.9-.2 1 2.7 2.4 1.6-.6 2.9.6 2.9-2.4 1.6-1 2.7-2.9-.2L12 22l-2.4-1.7-2.9.2-1-2.7L3.3 16l.6-2.9-.6-2.9 2.4-1.6 1-2.7 2.9.2z"/><path d="M10.6 14.6l-2-2-1.1 1.1 3.1 3.1 5.3-5.3-1.1-1.1z" fill="#fff"/></svg></span><span class="cmt-text">Hey Manmath! Craving noted 🍕 I've slid into your DMs — one tap and it's on the way.</span></div>
+                    <span class="ai-chip">✨ Crave AI · order intent detected</span>
+                    <button class="dm-pill" id="openDm">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                      Open DM
+                    </button>
+                    <span class="tap-hint">The order moves to a private DM — your address &amp; payment never touch the public comment.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== VIEW 3: DM — OPTIONS ===== -->
+        <section class="view" data-view="3">
+          <div class="dmbar">
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            <div class="dmav"><svg class="mark" viewBox="0 0 36 36" id="craveMark2"></svg></div>
+            <div>
+              <div class="dm-name">craveapp <svg class="verif" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.7 2.9-.2 1 2.7 2.4 1.6-.6 2.9.6 2.9-2.4 1.6-1 2.7-2.9-.2L12 22l-2.4-1.7-2.9.2-1-2.7L3.3 16l.6-2.9-.6-2.9 2.4-1.6 1-2.7 2.9.2z"/><path d="M10.6 14.6l-2-2-1.1 1.1 3.1 3.1 5.3-5.3-1.1-1.1z" fill="#fff"/></svg></div>
+              <div class="dm-sub">Order assistant · online</div>
+            </div>
+          </div>
+          <div class="scroll dm-scroll">
+            <span class="ts">Today</span>
+            <div class="bubble ai">Hey Manmath 👋</div>
+            <div class="bubble ai">Saw your pizza craving. Based on what you've ordered before, here are 3 picks near you right now:</div>
+
+            <div class="opt" data-pick="Pepperoni Classic" data-rest="Napoli Wood Co." data-price="329">
+              <div class="opt-thumb"><svg viewBox="0 0 80 80" class="thumbPizza"></svg></div>
+              <div class="opt-body"><div class="opt-name">Pepperoni Classic</div><div class="opt-rest">Napoli Wood Co. · 1.2 km</div><div class="opt-bottom"><span class="tag usual">★ Your usual</span><span class="opt-price">₹329</span></div></div>
+            </div>
+            <div class="opt" data-pick="Farmhouse Veggie" data-rest="Crust &amp; Co." data-price="299">
+              <div class="opt-thumb"><svg viewBox="0 0 80 80" class="thumbPizza"></svg></div>
+              <div class="opt-body"><div class="opt-name">Farmhouse Veggie</div><div class="opt-rest">Crust &amp; Co. · 0.9 km</div><div class="opt-bottom"><span class="tag reorder">↺ You reorder this</span><span class="opt-price">₹299</span></div></div>
+            </div>
+            <div class="opt" data-pick="Spicy Chicken Supreme" data-rest="Flame Pizzeria" data-price="379">
+              <div class="opt-thumb"><svg viewBox="0 0 80 80" class="thumbPizza"></svg></div>
+              <div class="opt-body"><div class="opt-name">Spicy Chicken Supreme 🌶️</div><div class="opt-rest">Flame Pizzeria · 2.1 km</div><div class="opt-bottom"><span class="tag new">＋ New near you</span><span class="opt-price">₹379</span></div></div>
+            </div>
+
+            <div class="bubble ai">Tap one and I'll handle the rest — address &amp; payment are already on file.</div>
+          </div>
+        </section>
+
+        <!-- ===== VIEW 4: DM — SUMMARY ===== -->
+        <section class="view" data-view="4">
+          <div class="dmbar">
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            <div class="dmav"><svg class="mark" viewBox="0 0 36 36" id="craveMark3"></svg></div>
+            <div>
+              <div class="dm-name">craveapp <svg class="verif" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.7 2.9-.2 1 2.7 2.4 1.6-.6 2.9.6 2.9-2.4 1.6-1 2.7-2.9-.2L12 22l-2.4-1.7-2.9.2-1-2.7L3.3 16l.6-2.9-.6-2.9 2.4-1.6 1-2.7 2.9.2z"/><path d="M10.6 14.6l-2-2-1.1 1.1 3.1 3.1 5.3-5.3-1.1-1.1z" fill="#fff"/></svg></div>
+              <div class="dm-sub">Order assistant · online</div>
+            </div>
+          </div>
+          <div class="scroll dm-scroll">
+            <div class="bubble me" id="pickedBubble">Pepperoni Classic 👍</div>
+            <div class="bubble ai">Great pick. Everything's set — just confirm:</div>
+            <div class="summary">
+              <div class="sum-head">
+                <div class="opt-thumb"><svg viewBox="0 0 80 80" class="thumbPizza"></svg></div>
+                <div><div class="sum-rest" id="sumRest">Napoli Wood Co.</div><div class="sum-eta">● Delivers in 30–35 min</div></div>
+              </div>
+              <div class="sline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span id="sumItem">1× Pepperoni Classic</span><span class="qty" id="sumItemPrice">₹329</span></div>
+              <div class="sline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.2-7-11a7 7 0 0114 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Home · <b>14, MG Road, Bengaluru</b></span><span class="chk">Saved</span></div>
+              <div class="sline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg><span>Visa <b>•••• 4242</b></span><span class="chk">Saved</span></div>
+              <div class="total"><span>Total <span style="font-weight:500;color:var(--mut);font-size:12px">incl. delivery + taxes</span></span><span id="sumTotal">₹372</span></div>
+            </div>
+            <button class="btn btn-confirm" id="confirmBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              <span id="confirmLabel">Confirm order · ₹372</span>
+            </button>
+            <span class="micro">No app switch. No forms. One tap.</span>
+          </div>
+        </section>
+
+        <!-- ===== VIEW 5: PLACED + TRACKING ===== -->
+        <section class="view" data-view="5">
+          <div class="dmbar">
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            <div class="dmav"><svg class="mark" viewBox="0 0 36 36" id="craveMark4"></svg></div>
+            <div>
+              <div class="dm-name">craveapp <svg class="verif" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.7 2.9-.2 1 2.7 2.4 1.6-.6 2.9.6 2.9-2.4 1.6-1 2.7-2.9-.2L12 22l-2.4-1.7-2.9.2-1-2.7L3.3 16l.6-2.9-.6-2.9 2.4-1.6 1-2.7 2.9.2z"/><path d="M10.6 14.6l-2-2-1.1 1.1 3.1 3.1 5.3-5.3-1.1-1.1z" fill="#fff"/></svg></div>
+              <div class="dm-sub">Order assistant · online</div>
+            </div>
+          </div>
+          <div class="scroll dm-scroll">
+            <div class="placed">
+              <div class="check-pop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+              <h3>Order placed</h3>
+              <span class="ord">#CRV&#8209;4827 · Napoli Wood Co.</span>
+            </div>
+            <div class="track">
+              <div class="track-head"><span class="tt">Live tracking</span><span class="te" id="etaText">ETA 32 min</span></div>
+              <div class="tnode done" data-t="0"><div class="tdot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div><div><div class="tlabel">Order confirmed</div><div class="tsub">Sent to the kitchen</div></div></div>
+              <div class="tnode pending" data-t="1"><div class="tdot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div><div><div class="tlabel">Preparing your pizza</div><div class="tsub">Napoli Wood Co.</div></div></div>
+              <div class="tnode pending" data-t="2"><div class="tdot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div><div><div class="tlabel">Out for delivery</div><div class="tsub">Rider on the way</div></div></div>
+              <div class="tnode pending" data-t="3"><div class="tdot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div><div><div class="tlabel" id="lastLabel">Arriving at your door</div><div class="tsub">14, MG Road</div></div></div>
+            </div>
+            <div class="bubble ai" id="trackMsg" style="margin-top:10px;">Tracking right here in the chat — I'll ping you at each step. 🍕</div>
+            <button class="restart" id="restartBtn">↻ Run the demo again</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="controls">
+    <button class="nav" id="prev" aria-label="Previous step"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="dots" id="dots"></div>
+    <button class="nav" id="next" aria-label="Next step"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+  </div>
+  <div class="caption">
+    <div class="cstep" id="cstep">Step 1 of 5</div>
+    <div class="ctext" id="ctext"></div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  function pizza(w,h){
+    var cx=w/2, cy=h/2, r=Math.min(w,h)*0.46, pep="", basil="", i, x, y;
+    var pp=[[-0.45,-0.3],[0.4,-0.4],[0.55,0.2],[-0.2,0.5],[0.1,-0.05],[-0.55,0.25],[0.25,0.45],[-0.05,-0.55]];
+    for(i=0;i<pp.length;i++){ x=cx+pp[i][0]*r; y=cy+pp[i][1]*r; pep+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(r*0.13).toFixed(1)+'" fill="#C0392B"/>'; }
+    var bp=[[0.0,0.35],[-0.35,-0.1],[0.45,-0.1]];
+    for(i=0;i<bp.length;i++){ x=cx+bp[i][0]*r; y=cy+bp[i][1]*r; basil+='<ellipse cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" rx="'+(r*0.09).toFixed(1)+'" ry="'+(r*0.05).toFixed(1)+'" fill="#3FA34D" transform="rotate('+(i*55)+' '+x.toFixed(1)+' '+y.toFixed(1)+')"/>'; }
+    return '<defs><radialGradient id="cg'+w+'_'+h+'" cx="50%" cy="42%" r="60%"><stop offset="0%" stop-color="#F6D469"/><stop offset="100%" stop-color="#EBB84B"/></radialGradient></defs>'+
+      '<rect width="'+w+'" height="'+h+'" fill="#241a12"/>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="'+(r*1.06).toFixed(1)+'" fill="#D99A47"/>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="'+r.toFixed(1)+'" fill="url(#cg'+w+'_'+h+')"/>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="'+(r*0.9).toFixed(1)+'" fill="none" stroke="#E5533B" stroke-width="'+(r*0.06).toFixed(1)+'" opacity=".55"/>'+pep+basil;
+  }
+  document.getElementById('pizzaHero').innerHTML = pizza(340,220);
+  Array.prototype.forEach.call(document.querySelectorAll('.thumbPizza'), function(el){ el.innerHTML=pizza(80,80); });
+
+  var mark='<rect width="36" height="36" rx="9" fill="#FF4D2E"/>'+
+    '<path d="M25 14.5c-1.2-1.1-3-1.8-5-1.8-3.9 0-7 2.8-7 6.3s3.1 6.3 7 6.3c2 0 3.8-.7 5-1.8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>'+
+    '<circle cx="24" cy="12.5" r="2.2" fill="#fff"/>';
+  ['craveMark1','craveMark2','craveMark3','craveMark4','toastMark'].forEach(function(id){ var el=document.getElementById(id); if(el) el.innerHTML=mark; });
+
+  function tick(){ var d=new Date(),h=d.getHours()%12; if(h===0)h=12; var m=d.getMinutes(); document.getElementById('clock').textContent=h+':'+(m<10?'0'+m:m); }
+  tick(); setInterval(tick,10000);
+
+  var views=document.querySelectorAll('.view'), TOTAL=views.length, step=1, trackTimers=[];
+  var captions=[
+    ['Discovery','A craving dropped as a comment on a post — right where the desire happens, no app opened.'],
+    ['The handoff','The brand\u2019s AI replies to the comment and moves it into a private DM. The trigger is public; the order stays private.'],
+    ['Personalization','Three picks rebuilt from past orders. The work is done; the user just taps one.'],
+    ['Zero-effort checkout','Address and payment are already on file. Ordering collapses to a single confirmation.'],
+    ['Confirmed','The order places itself and tracks in the same thread — no app was ever opened.']
+  ];
+
+  function clearTrack(){ trackTimers.forEach(clearTimeout); trackTimers=[]; }
+
+  function resetFeed(){
+    var slot=document.getElementById('yourCmtSlot'); if(slot){ slot.innerHTML=''; delete slot.dataset.posted; }
+    var btn=document.getElementById('postBtn'); if(btn){ btn.textContent='Post'; btn.disabled=false; }
+    var t=document.getElementById('craveToast'); if(t) t.classList.remove('show');
+    var ci=document.querySelector('#composer .cinput'); if(ci) ci.style.opacity='';
+    var fs=document.getElementById('feedScroll'); if(fs) fs.scrollTop=0;
+  }
+
+  function render(){
+    views.forEach(function(v){ v.classList.toggle('active', +v.dataset.view===step); });
+    document.querySelector('.cstep').textContent='Step '+step+' · '+captions[step-1][0];
+    document.getElementById('ctext').textContent=captions[step-1][1];
+    Array.prototype.forEach.call(document.querySelectorAll('.dot'), function(d,i){ d.classList.toggle('on', i===step-1); });
+    document.getElementById('prev').disabled = step===1;
+    document.getElementById('next').disabled = step===TOTAL;
+    if(step===1) resetFeed();
+    if(step===5) runTracking(); else clearTrack();
+  }
+
+  function goTo(n){ if(n<1||n>TOTAL) return; step=n; render(); }
+
+  function runTracking(){
+    clearTrack();
+    var nodes=document.querySelectorAll('.view[data-view="5"] .tnode');
+    var etas=['ETA 32 min','ETA 24 min','ETA 9 min','Arriving now'];
+    var msgs=['Tracking right here in the chat — I\u2019ll ping you at each step. 🍕','Your pizza is in the oven 🔥','On the move — your rider just left Napoli Wood Co. 🛵','Knock knock — your order is at the door. Enjoy, Manmath! 🍕'];
+    nodes.forEach(function(nd,i){ nd.classList.remove('active','pending','done'); nd.classList.add(i===0?'done':'pending'); });
+    if(nodes[1]) nodes[1].classList.add('active');
+    [1,2,3].forEach(function(idx,k){
+      trackTimers.push(setTimeout(function(){
+        nodes[idx].classList.remove('pending','active'); nodes[idx].classList.add('done');
+        if(nodes[idx+1]) nodes[idx+1].classList.add('active');
+        document.getElementById('etaText').textContent=etas[k+1];
+        document.getElementById('trackMsg').textContent=msgs[k+1];
+        if(idx===3){ document.getElementById('lastLabel').textContent='Delivered'; var e=document.getElementById('etaText'); e.textContent='Delivered ✓'; e.style.color='var(--green)'; }
+      }, 1700*(k+1)));
+    });
+  }
+
+  function choose(name, rest, price){
+    var total=price+43;
+    document.getElementById('pickedBubble').textContent=name+' 👍';
+    document.getElementById('sumRest').textContent=rest;
+    document.getElementById('sumItem').textContent='1× '+name;
+    document.getElementById('sumItemPrice').textContent='₹'+price;
+    document.getElementById('sumTotal').textContent='₹'+total;
+    document.getElementById('confirmLabel').textContent='Confirm order · ₹'+total;
+    document.querySelector('.view[data-view="5"] .ord').innerHTML='#CRV&#8209;4827 · '+rest;
+    document.querySelectorAll('.view[data-view="5"] .tsub')[1].textContent=rest;
+  }
+
+  // post the comment
+  document.getElementById('postBtn').addEventListener('click', function(){
+    var slot=document.getElementById('yourCmtSlot');
+    if(slot.dataset.posted) return;
+    slot.innerHTML='<div class="cmt you cmt-newin"><div class="av user sm">M</div><div class="cmt-body"><div class="cmt-line"><span class="cmt-name">Manmath</span><span class="cmt-text"><span class="mention">@craveapp</span> this looks unreal 🍕 need this for dinner tonight</span></div><div class="cmt-meta"><span>now</span><span>Reply</span></div></div></div>';
+    slot.dataset.posted='1';
+    this.textContent='Posted'; this.disabled=true;
+    var ci=document.querySelector('#composer .cinput'); if(ci) ci.style.opacity='.4';
+    try{ slot.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+    var t=document.getElementById('craveToast');
+    setTimeout(function(){ t.classList.add('show'); }, 850);
+  });
+  document.getElementById('craveToast').addEventListener('click', function(){ this.classList.remove('show'); goTo(2); });
+
+  document.getElementById('openDm').addEventListener('click', function(){ goTo(3); });
+  Array.prototype.forEach.call(document.querySelectorAll('.opt'), function(o){
+    o.addEventListener('click', function(){
+      var tmp=document.createElement('div'); tmp.innerHTML=o.dataset.rest;
+      choose(o.dataset.pick, tmp.textContent, +o.dataset.price); goTo(4);
+    });
+  });
+  document.getElementById('confirmBtn').addEventListener('click', function(){ goTo(5); });
+  document.getElementById('restartBtn').addEventListener('click', function(){ goTo(1); });
+  Array.prototype.forEach.call(document.querySelectorAll('.chev'), function(c){ c.addEventListener('click', function(){ goTo(step-1); }); });
+  document.getElementById('prev').addEventListener('click', function(){ goTo(step-1); });
+  document.getElementById('next').addEventListener('click', function(){ goTo(step+1); });
+
+  var dotsWrap=document.getElementById('dots');
+  for(var i=0;i<TOTAL;i++){ (function(idx){ var d=document.createElement('div'); d.className='dot'; d.addEventListener('click', function(){ goTo(idx+1); }); dotsWrap.appendChild(d); })(i); }
+
+  document.addEventListener('keydown', function(e){ if(e.key==='ArrowRight') goTo(step+1); if(e.key==='ArrowLeft') goTo(step-1); });
+
+  function fit() {
+    const sc = document.getElementById('scaler');
+
+    const phoneW = 460;
+    const phoneH = 996;
+
+    const horizontalPadding = 40;
+    const verticalPadding = 100;
+
+    const availableWidth = window.innerWidth - horizontalPadding;
+    const availableHeight = window.innerHeight - verticalPadding;
+
+    let scale = Math.min(
+        availableWidth / phoneW,
+        availableHeight / phoneH
+    );
+
+    scale = Math.min(scale, 1);
+
+    sc.style.transform = `scale(${scale})`;
+    sc.style.transformOrigin = 'top center';
+
+    sc.style.width = phoneW + 'px';
+    sc.style.height = phoneH + 'px';
+}
+window.addEventListener('resize', fit);
+  fit(); render();
+})();
+</script>
+</body>
+</html>
